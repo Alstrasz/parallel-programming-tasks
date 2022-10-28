@@ -9,33 +9,16 @@
 #include <memory>
 #include <fstream>
 #include <sstream>
+#include "prime.h"
 
 using namespace std;
-
-bool is_prime ( int32_t val ) {
-    if (val == 2 || val == 3 || val == 5 || val == 7 || val == 11 || val == 13 || val == 17 ) {
-        return true;
-    }
-    if ( val <= 17 ) {
-        return false;
-    }
-
-    int32_t upper = sqrt(val) + 3;
-
-    for (int32_t i = 3; i < upper; i += 2) {
-        if (val % upper != 0) {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 int32_t get_value ( shared_ptr<int32_t> inc, int32_t max_inc, shared_ptr<mutex> inc_mutex ) {
     int32_t val;
     inc_mutex->lock();
     if ( *inc < max_inc ) {
-        *inc += 2;
+        
+        *inc += 6 - ((*inc) % 3) * 2;
     }
     val = *inc;
     inc_mutex->unlock();
@@ -108,6 +91,12 @@ void thread_func(
     str << "thread" << id << ".txt";
     ofstream fout(str.str(), ofstream::ate);
 
+    if (id == 0) {
+        output_value(2, false, id, entries_count, output_etries, result_stream, fout, output_mutex);
+        output_value(3, false, id, entries_count, output_etries, result_stream, fout, output_mutex);
+    }
+
+
     while ( true ) {
         int32_t val = get_value(inc, max_inc, inc_mutex);
         if ( val > max_inc ) {
@@ -164,7 +153,7 @@ void spawn_threads(int32_t thread_count, int32_t max_inc) {
 
 int32_t main( int argc, char **argv ) {
     int32_t thread_count = 2;
-    int32_t max_inc = 100000;
+    int32_t max_inc = 1000000;
 
     if ( argc >= 2 ) {
         int32_t num = atoi(argv[1]);
